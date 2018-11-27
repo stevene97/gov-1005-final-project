@@ -1,0 +1,105 @@
+---
+title: "Sanitary Violations: Final Project"
+author: "Steven Espinoza"
+date: "11/27/2018"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(shiny)
+library(leaflet)
+library(plotly)
+library(lubridate)
+library(stringr)
+library(janitor)
+library(RSocrata)
+library(tidyverse)
+```
+
+```{r loading_data, include=FALSE}
+# Loading in the data from the API
+df <- read.socrata("https://data.cambridgema.gov/resource/3c3f-byi2.csv")
+
+# Making new columns for 'lat' and 'lng' and the difference in days between corrected_date - cited_date
+df <- df %>% 
+  separate(address, into = c('point', 'lng', 'lat'), sep = ' ') %>% 
+  select(-point) %>% 
+  
+  # New column for lats and longs
+  mutate(lng = gsub('\\(', "", lng), lat = gsub('\\)', "", lat)) %>% 
+  
+  # New column for time difference
+  mutate(corrected_time = seconds_to_period(corrected_date - cited_date)$day)
+```
+
+```{r cleaning_names, echo=FALSE}
+# Cleaning the "establishment names" column
+
+# First step: making everything uppercase for sake of consistency
+df <- df %>% 
+  mutate(establishment_name = toupper(establishment_name))
+
+# Removing apostrophes
+for(i in length(df$establishment_name)){
+  df$establishment_name[i] = str_replace(df$establishment_name[i], "\'", '')
+}
+
+```
+
+
+## Sanitary Violations in Cambridge
+
+The city of Cambridge maintains an open data set on sanitary violations as cited by the city's sanitary inspector. The dataset includes all kinds of checks that the sanitary inspector makes at food establishments, from making sure that a workers' hair is restrained to the prevention of contamination from hands. 
+
+In total there are `r length(unique(df$case_number))` distinct cases in the dataset. There are also a total of `r length(unique(df$establishment_name))` establishments in the city of Cambridge.
+
+
+```{r echo=FALSE, include=FALSE}
+# Define UI for application that draws price-to-income ratios over time by selecting regions
+shinyApp(
+  
+  ui <- fluidPage(
+  
+  # Application title
+  titlePanel("Sanitary Violations"),
+  
+  sidebarPanel(
+    # Select region name here
+    selectInput(inputId = "name",
+                label = "Name of Establishment",
+                choices = sort(unique(df$establishment_name))),
+    selectInput(inputId = 'case',
+                label = 'Case Number',
+                choices = "")),
+  
+  # Show a plot of the generated graph
+  mainPanel(
+    plotlyOutput("trendPlot")
+  )),
+  
+# Define server logic required to draw a trend plot
+server <- function(input, output, session){
+  observe({
+    x <- df %>% 
+      filter(establishment_name == input$name) %>% 
+      select(case_number) %>% 
+      unique()
+    
+    updateSelectInput(session, "case",
+                      label = 'Case Number',
+                      choices = x)
+  })
+  
+  
+},
+options = list(height=500)
+)
+```
+
+
+
+
+
+
