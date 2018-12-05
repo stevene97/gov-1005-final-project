@@ -16,6 +16,7 @@ library(stringr)
 library(janitor)
 library(RSocrata)
 library(tidyverse)
+library(kableExtra)
 ```
 
 ```{r loading_data, include=FALSE}
@@ -34,72 +35,159 @@ df <- df %>%
   mutate(corrected_time = seconds_to_period(corrected_date - cited_date)$day)
 ```
 
-```{r cleaning_names, echo=FALSE}
-# Cleaning the "establishment names" column
+```{r cleaning_names, include=FALSE}
+# Cleaning the "establishment names" column:
+# A lot of the establishment names did not match perfectly in the dataset. For example, a restaurant like "Ihop" was coded as "I hop", "IHOP", and "I-Hop", leading to three distinct ways to describe only one restaurant. I first thought that the best way to fix this would be to create a unique identifier for this by first removing all spaces, dashes, and some other characters for the establishment names, and then combining the first three letters of this new variable with the address (note: addresses weren't as inconsistent as the establishment names). I figured that if the address and the first three letters matched they would be describing the same place.
 
-# First step: making everything uppercase for sake of consistency
+# First step: creating a new column for a "unique ID" of each location
+# Starting off by making all establishment names and addresses uppercase for sake of consistency. 
 df <- df %>% 
-  mutate(establishment_name = toupper(establishment_name))
+  mutate(unique_id = toupper(establishment_name), address_address = toupper(address_address))
 
-# Removing apostrophes
-for(i in length(df$establishment_name)){
-  df$establishment_name[i] = str_replace(df$establishment_name[i], "\'", '')
-}
+# Next step: removing all apostrophes, periods, dashes, and spaces for establishment names
+df$unique_id = gsub("'", "", df$unique_id)
+df$unique_id = gsub("’", "", df$unique_id)
+df$unique_id = gsub("/.", "", df$unique_id)
+df$unique_id = gsub(" ", "", df$unique_id)
+df$unique_id = gsub("-", "", df$unique_id)
 
+# Creating our 'unique_id': a combination of the address listed and the first three letters of the restaurant
+df <- df %>% 
+  mutate(unique_id = paste(address_address, substr(unique_id, 1, 3)))
+
+# Continuing the matching process: creating a new data frame to create a list of "accurate" establishment names
+df_ <- df
+
+# Make the "accurate" establishment name equivalent to the first instance of that name
+df_ <- df_ %>% 
+  group_by(unique_id) %>% 
+  summarize(first_estab = establishment_name[1])
+
+df2 <- df
+
+# Join the datasets together in order to have the unique ID and the "first_estab" column, which creates the "accurate" names column I was hoping for
+joined <- left_join(df_, df2, 'unique_id') %>% as.data.frame()
+
+# My goal is to restrict the dataset to establishments I've made my own list for around Harvard Square. This could be done by filtering for latitudes/longitudes within a specific area around Harvard Square. This reduces the number of observations from about 30,000 to about 4,000, making it much easier for me to inspect and clean as I go along.
+joined <- joined %>% 
+  filter(lat >= 42.368694) %>% 
+  filter(lat <= 42.376375) %>% 
+  filter(lng <= -71.125129) %>% 
+  filter(lng >= -71.112232) %>% 
+  as.data.frame()
+
+
+# Next step: Look at unique "first_estab" names and see if they are all genuinely unique. Ideally there'd be no mistakes.
+sort(unique(joined$first_estab))
+
+# Fixing mistakes: This unfortunately has to be done by hand. Thankfully there are only about 250 unique first_estab names on the list, making it easy for me to sort the list alphabetically and find any mismatches.
+
+# Mistake #1: Al's Harvard Square Cafe seems to have two different addresses, even though they have the same lat, lng values. Fixing this.
+joined$first_estab[joined$first_estab == "Al\'s"] <- "Al's Harvard Square Cafe"
+
+# Mistake #2: Au Bon Pain
+joined$first_estab[joined$first_estab == "Au Bon pain"] <- "Au Bon Pain"
+
+# Mistake #3: Beat Hotel
+joined$first_estab[joined$first_estab == "Beat hotel"] <- "Beat Hotel"
+
+# Mistake #4: b.good versus bgood
+joined$first_estab[joined$first_estab == "bgood"] <- "b.good"
+
+# Mistake #5: Charlie's Kitchen versus Charlie's Kitchen/red House
+joined$first_estab[joined$first_estab == "Charlie\'s Kitchen/red House"] <- "Charlie\'s Kitchen"
+
+# Mistake #6: Clover versus Clover Fast Food (judged to be the same one by the way--on 1326 Massachusetts Ave)
+joined$first_estab[joined$first_estab == "Clover Fast Food"] <- "Clover"
+
+# Mistake #7: CVS versus CVS Pharmacy #240. "CVS" refers to the one next to Otto's that's now closed, while "CVS Pharmacy #240" refers to the one right on the square.
+joined$first_estab[joined$first_estab == "CVS"] <- "CVS (Next to Otto\'s)"
+joined$first_estab[joined$first_estab == "CVS Pharmacy #240"] <- "CVS (Next to T stop)"
+
+# Mistake #8: correcting Dophin (misspelled "Dolphin")
+joined$first_estab[joined$first_estab == "Dophin"] <- "Dolphin"
+
+# Mistake #9: CRLS (means "Camrridge Rindge & Latin High School-CRLS")
+joined$first_estab[joined$first_estab == "CRLS"] <- "Cambridge Rindge & Latin High School-CRLS"
+
+# Mistake #10: IHOP versus IHop
+joined$first_estab[joined$first_estab == "IHop"] <- "IHOP"
+
+# Mistake #11: J.P. Licks versus JP Licks
+joined$first_estab[joined$first_estab == "JP Licks"] <- "J.P. Licks"
+
+# Mistake #12: Lamont Library Cafe verus HUDS Lamont Library Cafe
+joined$first_estab[joined$first_estab == "HUDS Lamont Library Cafe"] <- "Lamont Library Cafe"
+
+# Mistake #13: Legal Sea Foods versus Legal Seafood.
+joined$first_estab[joined$first_estab == "Legal Seafood."] <- "Legal Sea Foods"
+
+# Mistake #14: variations of Mr. Bartley's
+joined$first_estab[joined$first_estab == "Mr Bartley\'s Gourmet Burger"] <- "Mr. Bartley\'s Burger Cottage"
+joined$first_estab[joined$first_estab == "Bartley\'s Burgers"] <- "Mr. Bartley\'s Burger Cottage"
+
+# Mistake #15: Oggi  's versus Oggi Gourmet
+joined$first_estab[joined$first_estab == "Oggi \'s"] <- "Oggi Gourmet"
+
+# Mistake #16: Qdoba versus Qdoba Mexican Grill #2429 (both refer to the same Qdoba on mass ave)
+joined$first_estab[joined$first_estab == "Qdoba Mexican Grill #2429"] <- "Qdoba"
+
+# Mistake #17: Fixing 'The Charles Hotel/Henrietta's Table"
+joined$first_estab[joined$first_estab == "The Charles Hotel/Henrietta\'s Table"] <- "Henrietta\'s Table"
+
+# Mistake #18: "The Maharaja" versus "Maharaja"
+joined$first_estab[joined$first_estab == "The Maharaja"] <- "Maharaja"
+
+# Mistake #19: Signet Society versus The Signet Society
+joined$first_estab[joined$first_estab == "The Signet Society"] <- "Signet Society"
+
+# Next step: read the cleaned "joined" dataframe as RDS to make shiny app.
+write_rds(joined, path='final_project/data.rds')
 ```
 
 
-## Sanitary Violations in Cambridge
+```{r testing, include=FALSE}
+# Testing out graphics that I use on the Shiny app will be done in this code chunk.
 
-The city of Cambridge maintains an open data set on sanitary violations as cited by the city's sanitary inspector. The dataset includes all kinds of checks that the sanitary inspector makes at food establishments, from making sure that a workers' hair is restrained to the prevention of contamination from hands. 
+# First graphic: line chart: sanitary violations for a specific establishment over time
+joined %>% 
+  filter(first_estab == 'Felipe\'s Taqueria') %>% 
+  mutate(year_cited = year(cited_date)) %>% 
+  count(year_cited) %>% 
+  plot_ly(x = ~year_cited, y = ~n, type = 'scatter', mode = 'lines') %>% 
+  layout(title = paste('Sanitary Violations Over Time For', 'Felipe\'s Taqueria'),
+         xaxis = list(title = 'Year'),
+         yaxis = list(title = 'Number of Violations'))
 
-In total there are `r length(unique(df$case_number))` distinct cases in the dataset. There are also a total of `r length(unique(df$establishment_name))` establishments in the city of Cambridge.
 
+# Second graphic: pie graph: types sanitary violations for an establishment by type
+joined %>% 
+  filter(first_estab == 'Felipe\'s Taqueria') %>% 
+  count(code_description) %>% 
+  arrange(desc(n)) %>% 
+  head(10) %>% 
+  plot_ly(labels = ~code_description, values = ~n, type = 'pie', showlegend = FALSE)
 
-```{r echo=FALSE, include=FALSE}
-# Define UI for application that draws price-to-income ratios over time by selecting regions
-shinyApp(
-  
-  ui <- fluidPage(
-  
-  # Application title
-  titlePanel("Sanitary Violations"),
-  
-  sidebarPanel(
-    # Select region name here
-    selectInput(inputId = "name",
-                label = "Name of Establishment",
-                choices = sort(unique(df$establishment_name))),
-    selectInput(inputId = 'case',
-                label = 'Case Number',
-                choices = "")),
-  
-  # Show a plot of the generated graph
-  mainPanel(
-    plotlyOutput("trendPlot")
-  )),
-  
-# Define server logic required to draw a trend plot
-server <- function(input, output, session){
-  observe({
-    x <- df %>% 
-      filter(establishment_name == input$name) %>% 
-      select(case_number) %>% 
-      unique()
-    
-    updateSelectInput(session, "case",
-                      label = 'Case Number',
-                      choices = x)
-  })
-  
-  
-},
-options = list(height=500)
-)
+# Third graphic: Location
+joined %>% 
+  filter(first_estab == 'Felipe\'s Taqueria') %>%
+  as.tibble() %>%
+  mutate(lng = as.numeric(as.character(lng))) %>% 
+  mutate(lat = as.numeric(as.character(lat))) %>% 
+  head(1) %>% 
+  leaflet() %>% 
+  addProviderTiles('CartoDB',
+                   options = providerTileOptions(minZoom = 16, maxZoom = 18)) %>% 
+  addPopups(~lng, ~lat, "hello")
+
+# Fourth graphic: Kable output
+joined %>% 
+  filter(first_estab == 'Felipe\'s Taqueria') %>% 
+  mutate(corrected_date = as.Date(corrected_date)) %>% 
+  select(first_estab, cited_date, corrected_date, code_description) %>% 
+  kable(col.names = c('Name', 'Date Cited', 'Date Corrected', 'Description'), escape=F) %>%
+  kable_styling() %>%
+  scroll_box(width = "100%", height = "400px")
+
 ```
-
-
-
-
-
 
