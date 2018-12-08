@@ -107,7 +107,7 @@ joined$first_estab[joined$first_estab == "CVS Pharmacy #240"] <- "CVS (Next to T
 # Mistake #8: correcting Dophin (misspelled "Dolphin")
 joined$first_estab[joined$first_estab == "Dophin"] <- "Dolphin"
 
-# Mistake #9: CRLS (means "Camrridge Rindge & Latin High School-CRLS")
+# Mistake #9: CRLS (means "Cambridge Rindge & Latin High School-CRLS")
 joined$first_estab[joined$first_estab == "CRLS"] <- "Cambridge Rindge & Latin High School-CRLS"
 
 # Mistake #10: IHOP versus IHop
@@ -115,6 +115,7 @@ joined$first_estab[joined$first_estab == "IHop"] <- "IHOP"
 
 # Mistake #11: J.P. Licks versus JP Licks
 joined$first_estab[joined$first_estab == "JP Licks"] <- "J.P. Licks"
+joined$first_estab[joined$first_estab == "J.P. Licks"] <- "JP Licks"
 
 # Mistake #12: Lamont Library Cafe verus HUDS Lamont Library Cafe
 joined$first_estab[joined$first_estab == "HUDS Lamont Library Cafe"] <- "Lamont Library Cafe"
@@ -141,6 +142,84 @@ joined$first_estab[joined$first_estab == "The Maharaja"] <- "Maharaja"
 # Mistake #19: Signet Society versus The Signet Society
 joined$first_estab[joined$first_estab == "The Signet Society"] <- "Signet Society"
 
+# Mistake #20: capitalizing "Gutman Cafe"
+joined$first_estab[joined$first_estab == "Gutman cafe"] <- "Gutman Cafe"
+
+# Mistake #21: fixing "HUDS Annenberg Dining Hall" and calling it "Annenberg Dining Hall"
+joined$first_estab[joined$first_estab == "HUDS Annenberg Dining Hall"] <- "Annenberg Dining Hall"
+
+# Mistake #22: The Chauhaus at the GSD
+joined$first_estab[joined$first_estab == "ChauHaus at GSD"] <- "HUDS Chauhaus"
+
+# Mistake #23: Shabu shabu
+joined$first_estab[joined$first_estab == "Shabu shabu"] <- "Shabu Shabu"
+
+# Mistake #22: Tamirind BAy
+joined$first_estab[joined$first_estab == "Tamirind BAy"] <- "Tamirind Bay"
+
+# Mistake #23: Adams House Dining
+joined$first_estab[joined$first_estab == "Adams House"] <- "HUDS Adams Dining"
+
+# Mistake #24: Leverett Dining Hall
+joined$first_estab[joined$first_estab == "Leverett Dining Hall"] <- "HUDS Leverett"
+
+# Mistake #25: Lowell/Winthrop Dining Halls
+joined$first_estab[joined$first_estab == "Lowell/Winthrop Dining Halls"] <- "HUDS Lowell/Winthrop Dining Halls"
+
+# Mistake #26: They misspelled CGIS as "CJIS" -_-
+joined$first_estab[joined$first_estab == "HUDS CJIS Cafe"] <- "HUDS CGIS Cafe"
+
+# Mistake #27: adding "HUDS" in front of "Quincy House" and "Quincy Grill" for consistency
+joined$first_estab[joined$first_estab == "Quincy House"] <- "HUDS Quincy House"
+joined$first_estab[joined$first_estab == "Quincy Grill"] <- "HUDS Quincy Grill"
+
+# Mistake #28: The Commons at Gutman Library (with HUDS in front)
+joined$first_estab[joined$first_estab == "The Commons at Gutman Library"] <- "HUDS Gutman Library Cafe"
+joined$first_estab[joined$first_estab == "Gutman Cafe"] <- "HUDS Gutman Library Cafe"
+
+# Mistake #29: "University Lutheran church"
+joined$first_estab[joined$first_estab == "University Lutheran church"] <- "University Lutheran Church"
+
+# Mistake #30: Lamont Cafe
+joined$first_estab[joined$first_estab == "Lamont Library Cafe"] <- "HUDS Lamont Library Cafe"
+
+# Mistake #31: "Harvard Center for Gov&International Studies"
+joined$first_estab[joined$first_estab == "Harvard Center for Gov&International Studies"] <- "HUDS CGIS Cafe"
+
+# Mistake #32: adding more info to the different Starbucks locations in the dataset
+joined$first_estab[joined$unique_id == "1380 MASSACHUSETTS AVE STA"] <- "Starbucks (Harvard Square)"
+joined$first_estab[joined$unique_id == "1384 MASSACHUSETTS AVE STA"] <- "Starbucks (Harvard Square)"
+joined$first_estab[joined$unique_id == "36 JFK ST STA"] <- "Starbucks (Garage)"
+joined$first_estab[joined$unique_id == "468 BROADWAY STA"] <- "Starbucks (Broadway)"
+joined$first_estab[joined$unique_id == "31 CHURCH ST STA"] <- "Starbucks (Church St)"
+
+# Mistake #33: Differentiating between the different Dunkin Donuts
+joined$first_estab[joined$unique_id == "1 ELIOT ST DUN"] <- "Dunkin Donuts (JFK Street)"
+joined$first_estab[joined$unique_id == "65 JFK ST DUN"] <- "Dunkin Donuts (JFK Street)"
+joined$first_estab[joined$unique_id == "61 CHURCH ST DUN"] <- "Dunkin Donuts (Church St)"
+joined$first_estab[joined$unique_id == "1400 MASSACHUSETTS AVE DUN"] <- "Dunkin Donuts (Harvard COOP)"
+
+# Mistake #44: differentiating between the different Peets Coffees
+joined$first_estab[joined$unique_id == "100 MT AUBURN ST PEE"] <- "Peets Coffee & Tea (Winthrop Square)"
+joined$first_estab[joined$unique_id == "24 JFK ST PEE"] <- "Peets Coffee & Tea (Capital One)"
+
+# Mistake #45: they actually said "swing house" referring to Lowell now (same address)
+joined$first_estab[joined$unique_id == "1201 MASSACHUSETTS AVE HAR"] <- "HUDS Swing House"
+joined$first_estab[joined$first_estab == "SWING dorm"] <- "HUDS Swing House"
+
+# Mistake #46: fixing the Au Bon Pains
+joined$first_estab[joined$unique_id == "1100 MASSACHUSETTS AVE AUB"] <- "Au Bon Pain (Mass Ave)"
+joined$first_estab[joined$unique_id == "124 MT AUBURN ST AUB"] <- "Au Bon Pain (Mount Auburn St)"
+joined$first_estab[joined$unique_id == "1350 MASSACHUSETTS AVE AUB"] <- "Au Bon Pain (Out-of-business)"
+joined$first_estab[joined$unique_id == "1360 MASSACHUSETTS AVE AUB"] <- "Au Bon Pain (Out-of-business)"
+
+# Mistake #47: Fixing more capitalization to make the list look pretty
+joined$first_estab[joined$first_estab == "Cambridge Center for adult education"] <- "Cambridge Center for Adult Education"
+
+# Mistake #48: Hourly
+joined$first_estab[joined$first_estab == "The Hourly Oyster House"] <- "The Hourly Oyster House"
+
+
 # Next step: read the cleaned "joined" dataframe as RDS to make shiny app.
 write_rds(joined, path='final_project/data.rds')
 ```
@@ -151,8 +230,8 @@ write_rds(joined, path='final_project/data.rds')
 
 # First graphic: line chart: sanitary violations for a specific establishment over time
 joined %>% 
-  filter(first_estab == 'Felipe\'s Taqueria') %>% 
-  mutate(year_cited = year(cited_date)) %>% 
+  filter(first_estab == 'Cabot\'s Candy') %>% 
+  mutate(year_cited = as.Date(cited_date)) %>% 
   count(year_cited) %>% 
   plot_ly(x = ~year_cited, y = ~n, type = 'scatter', mode = 'lines') %>% 
   layout(title = paste('Sanitary Violations Over Time For', 'Felipe\'s Taqueria'),

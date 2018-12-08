@@ -1,0 +1,12 @@
+name: Demo_Day
+title: Demo_Day
+username:
+account: stevene97
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 605205
+bundleId: 1743242
+url: https://stevene97.shinyapps.io/Demo_Day/
+when: 1544032899.5029
+asMultiple: FALSE
+asStatic: FALSE

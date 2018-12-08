@@ -5,6 +5,7 @@ library(tidyverse)
 library(lubridate)
 library(shinydashboard)
 library(kableExtra)
+library(DT)
 
 # Loading in the data
 df <- read_rds("data.rds")
@@ -49,7 +50,7 @@ ui <- dashboardPage(
             width = 7,
             solidHeader = TRUE,
             status = 'primary',
-            tableOutput('table')
+            div(style = 'height:400px; overflow-y: scroll', DT::dataTableOutput('table'))
             )
         )
       )
@@ -60,11 +61,11 @@ server <- function(input, output) {
   output$linegraph <- renderPlotly({
     df %>% 
       filter(first_estab == input$name) %>% 
-      mutate(year_cited = year(cited_date)) %>% 
+      mutate(year_cited = as.Date(cited_date)) %>% 
       count(year_cited) %>% 
       plot_ly(x = ~year_cited, y = ~n, type = 'area') %>% 
       layout(title = paste(''),
-             xaxis = list(title = 'Year'),
+             xaxis = list(title = 'Date Cited'),
              yaxis = list(title = 'Number of Violations'))
   })
   
@@ -91,29 +92,35 @@ server <- function(input, output) {
       plot_ly(labels = ~code_description, values = ~n, type = 'pie', showlegend = FALSE)
   })
   
-  output$table <- function(){
+  filteredData <- reactive({
+    df_out <- df
+    
     if(input$violation == 'All'){
-    df %>% 
-      filter(first_estab == input$name) %>% 
-      mutate(corrected_date = as.Date(corrected_date)) %>% 
-      select(first_estab, cited_date, corrected_date, code_description) %>% 
-      kable(col.names = c('Name', 'Date Cited', 'Date Corrected', 'Description'), escape=F) %>%
-      kable_styling() %>%
-      scroll_box(width = "100%", height = "400px")
+      df_out <- df %>% 
+        filter(first_estab == input$name) %>% 
+        mutate(cited_date = as.Date(cited_date)) %>% 
+        mutate(corrected_date = as.Date(corrected_date)) %>% 
+        select(first_estab, cited_date, corrected_date, code_description)
+      
+      colnames(df_out) <- c("Name", "Cited Date", "Corrected Date", "Description")
     }
     
-    else if(input$violation != "All"){
-      df %>% 
+    if(input$violation != "All"){
+      df_out <- df %>% 
         filter(first_estab == input$name) %>% 
         filter(code_description == input$violation) %>% 
+        mutate(cited_date = as.Date(cited_date)) %>% 
         mutate(corrected_date = as.Date(corrected_date)) %>% 
-        select(first_estab, cited_date, corrected_date, code_description) %>% 
-        kable(col.names = c('Name', 'Date Cited', 'Date Corrected', 'Description'), escape=F) %>%
-        kable_styling() %>%
-        scroll_box(width = "100%", height = "400px")
+        select(first_estab, cited_date, corrected_date, code_description)
+      
+      colnames(df_out) <- c("Name", "Cited Date", "Corrected Date", "Description")
     }
-    
-  }
+    df_out
+  })
+  
+  output$table <- DT::renderDataTable({
+    filteredData()
+  })
   
 }
 
