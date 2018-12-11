@@ -202,7 +202,7 @@ server <- function(input, output) {
     }
   })
   
-  # Outputs 3 and 4: Tables showing each establishments' respective violations
+  # Outputs 3 and 4: Tables showing each establishments' respective violations. Each of these will have an output for the kable immediately preceded by a reactive function that filters the data accordingly using a similar process as above.
   filteredData_compare1 <- reactive({
     if(input$compare3 == 'All'){
       df_out <- df %>% 
@@ -261,7 +261,7 @@ server <- function(input, output) {
     filteredData_compare2()
   })
   
-  #------"SUMMARIZE" PAGE OUTPUT---------
+  #--------"SUMMARIZE" PAGE OUTPUT------------
   output$summary_map <- renderLeaflet({
     if(input$summarize == 'All'){
       # First: thinking if "All" is selected

@@ -321,11 +321,6 @@ join_summarize %>%
                                   " violations",
                                   sep = ''),
                    fillOpacity = 0.75)
-  
-  
-# Second: thinking if a specific violation is selected, such as "Insects, Rodents, Animals, Outer Openings"
-
-
 ```
 
 
