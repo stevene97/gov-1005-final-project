@@ -225,7 +225,7 @@ write_rds(joined, path='final_project/data.rds')
 ```
 
 
-```{r testing, include=FALSE}
+```{r first_tab, include=FALSE}
 # Testing out graphics that I use on the Shiny app will be done in this code chunk.
 
 # First graphic: line chart: sanitary violations for a specific establishment over time
@@ -238,16 +238,7 @@ joined %>%
          xaxis = list(title = 'Year'),
          yaxis = list(title = 'Number of Violations'))
 
-
-# Second graphic: pie graph: types sanitary violations for an establishment by type
-joined %>% 
-  filter(first_estab == 'Felipe\'s Taqueria') %>% 
-  count(code_description) %>% 
-  arrange(desc(n)) %>% 
-  head(10) %>% 
-  plot_ly(labels = ~code_description, values = ~n, type = 'pie', showlegend = FALSE)
-
-# Third graphic: Location
+# Second graphic: Location
 joined %>% 
   filter(first_estab == 'Felipe\'s Taqueria') %>%
   as.tibble() %>%
@@ -259,7 +250,7 @@ joined %>%
                    options = providerTileOptions(minZoom = 16, maxZoom = 18)) %>% 
   addPopups(~lng, ~lat, "hello")
 
-# Fourth graphic: Kable output
+# Third graphic: Kable output
 joined %>% 
   filter(first_estab == 'Felipe\'s Taqueria') %>% 
   mutate(corrected_date = as.Date(corrected_date)) %>% 
@@ -269,4 +260,42 @@ joined %>%
   scroll_box(width = "100%", height = "400px")
 
 ```
+
+```{r tab_2}
+# Making a line graph with two lines showing both of the establishments selected
+joined %>% 
+  filter(first_estab == 'Felipe\'s Taqueria' | first_estab == 'El Jefe\'s Taqueria') %>% 
+  mutate(year_cited = as.Date(cited_date)) %>% 
+  count(first_estab, year_cited) %>% 
+  plot_ly(x = ~year_cited, y = ~n, type = 'scatter', mode = 'lines', color = ~first_estab) %>% 
+  layout(xaxis = list(title = 'Date'), yaxis = list(title = 'Number of Violations'))
+  
+# Making a bar graph comparing both establishments overall, or for a specific violation
+joined %>% 
+  filter(first_estab == 'Felipe\'s Taqueria' | first_estab == 'El Jefe\'s Taqueria') %>% 
+  mutate(year_cited = as.Date(cited_date)) %>% 
+  count(first_estab, year_cited) %>% 
+  group_by(first_estab) %>% 
+  summarize(sum = sum(n)) %>% 
+  plot_ly(x = ~first_estab, y = ~sum, type = 'bar', color = ~first_estab) %>% 
+  layout(xaxis = list(title = 'Establishment'), 
+         yaxis = list(title = 'Number of Violations'),
+         showlegend = FALSE)
+
+# Making two tables showing each of the establishments' violations
+
+
+
+```
+
+```{r tab_3}
+# Summarizing the worst sanitary violations around Harvard Square with a dot map, with the radius of the dot signifying how many violations the establishment has
+
+
+```
+
+
+
+
+
 
