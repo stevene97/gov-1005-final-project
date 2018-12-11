@@ -10,7 +10,12 @@ library(DT)
 # Loading in the data
 df <- read_rds("data.rds")
 
-# Define UI for application that draws a histogram
+# Using the "navbar" page to allow for different tabs:
+  # ANALYZE: Analyze focuses on sanitary violations for one specific establishment in Harvard Square.
+  # COMPARE: Compare allows the user to compare two different food establishments' sanitary violations over time.
+  # SUMMARIZE: Summarize allows the user to compare multiple establishments' sanitary violations, seeing which are the       worst violators either overall or for a specific violation.
+
+# Step 1: Building the interface using the "navbar" Shiny layout.
 ui <- navbarPage("Sanitary Violations",
                  
                  # Tab One: Analyzing a specific food establishment in Harvard Square
@@ -94,7 +99,18 @@ ui <- navbarPage("Sanitary Violations",
                             ))),
                  
                  # Tab three: Overall summary of sanitary violations in food establishments around Harvard
-                 tabPanel("Summarize")
+                 tabPanel("Summarize",
+                          titlePanel(""),
+                          sidebarLayout(
+                            sidebarPanel(
+                              selectInput("summarize",
+                                          label = "Select a violation",
+                                          choices = c("All", sort(unique(df$code_description))),
+                                          selected = 'All'),
+                              width=3),
+                            mainPanel(
+                              leafletOutput("summarymap")
+                            )))
 )
 
 #------ DEFINING THE SERVER LOGIC: Outputs to be displayed on the shiny page ------
@@ -245,6 +261,11 @@ server <- function(input, output) {
     filteredData_compare2()
   })
   
+  #------"SUMMARIZE" PAGE OUTPUT---------
+  output$summary_map <- renderLeaflet({
+    
+    
+  })
 }
 
 shinyApp(ui, server)

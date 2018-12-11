@@ -281,15 +281,16 @@ joined %>%
   layout(xaxis = list(title = 'Establishment'), 
          yaxis = list(title = 'Number of Violations'),
          showlegend = FALSE)
-
-# Making two tables showing each of the establishments' violations
-
-
-
 ```
 
 ```{r tab_3}
-# Summarizing the worst sanitary violations around Harvard Square with a dot map, with the radius of the dot signifying how many violations the establishment has
+# Summarizing the worst sanitary violations around Harvard Square with a dot map, with the radius of the dot signifying how many violations the establishment has either overall or for a specific sanitary violation
+
+# First: thinking if "All" is selected
+joined
+
+
+# Second: thinking if a specific violation is selected, such as "Insects, Rodents, Animals, Outer Openings"
 
 
 ```
