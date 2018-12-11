@@ -109,7 +109,7 @@ ui <- navbarPage("Sanitary Violations",
                                           selected = 'All'),
                               width=3),
                             mainPanel(
-                              leafletOutput("summarymap")
+                              leafletOutput("summary_map")
                             )))
 )
 
@@ -263,7 +263,83 @@ server <- function(input, output) {
   
   #------"SUMMARIZE" PAGE OUTPUT---------
   output$summary_map <- renderLeaflet({
+    if(input$summarize == 'All'){
+      # First: thinking if "All" is selected
+      # Step 1: Make a list of all unique first_estabs with corresponding lat, lng values
+      coords <- df %>% 
+        group_by(first_estab) %>% 
+        summarize(lat = lat[1], lng = lng[1])
+      
+      # Step 2: Make a list of the worst violators
+      worst <- df %>% 
+        mutate(year_cited = as.Date(cited_date)) %>%
+        count(first_estab, year_cited) %>% 
+        group_by(first_estab) %>% 
+        summarize(sum = sum(n)) %>% 
+        arrange(desc(sum)) %>% 
+        head(20)
+      
+      # Step 3: left_join to get lat, lng coordinates
+      join_summarize <- left_join(coords, worst, 'first_estab') %>% 
+        filter(!is.na(sum)) %>% 
+        arrange(desc(sum)) %>% 
+        mutate(lat = as.numeric(as.character(lat)), lng = as.numeric(as.character(lng)))
+      
+      # Step 4: Use the last dataframe to make a map showing the worst violators in Cambridge
+      join_summarize %>% 
+        leaflet() %>% 
+        addProviderTiles('CartoDB') %>% 
+        addCircleMarkers(lng = ~lng, lat = ~lat,
+                         radius = ~sum/7,
+                         color = "red",
+                         popup = ~paste("<b>", 
+                                        first_estab, 
+                                        "</b>: ", 
+                                        sum, 
+                                        " violations",
+                                        sep = ''),
+                         fillOpacity = 0.75)
+    }
     
+    else if(input$summarize != 'All'){
+      # Second: thinking if "All" is NOT selected
+      # Step 1: Make a list of all unique first_estabs with corresponding lat, lng values
+      coords <- joined %>% 
+        group_by(first_estab) %>% 
+        summarize(lat = lat[1], lng = lng[1])
+      
+      # Step 2: Make a list of the worst violators, now filtering for a specific violation
+      worst <- joined %>% 
+        mutate(year_cited = as.Date(cited_date)) %>%
+        filter(code_description == input$summarize) %>% 
+        count(first_estab, year_cited) %>% 
+        group_by(first_estab) %>% 
+        summarize(sum = sum(n)) %>% 
+        arrange(desc(sum)) %>% 
+        head(20)
+      
+      # Step 3: left_join to get lat, lng coordinates
+      join_summarize <- left_join(coords, worst, 'first_estab') %>% 
+        filter(!is.na(sum)) %>% 
+        arrange(desc(sum)) %>% 
+        mutate(lat = as.numeric(as.character(lat)), lng = as.numeric(as.character(lng)))
+      
+      # Step 4: Use the last dataframe to make a map showing the worst violators in Cambridge
+      join_summarize %>% 
+        leaflet() %>% 
+        addProviderTiles('CartoDB') %>% 
+        addCircleMarkers(lng = ~lng, lat = ~lat,
+                         radius = ~sum*5,
+                         color = "red",
+                         popup = ~paste("<b>", 
+                                        first_estab, 
+                                        "</b>: ", 
+                                        sum, 
+                                        " violations",
+                                        sep = ''),
+                         fillOpacity = 10)
+      
+    }
     
   })
 }
