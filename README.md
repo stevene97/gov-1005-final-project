@@ -4,3 +4,5 @@ This final project looks at sanitary code violations for restaurants in Cambridg
 # Sanitary Inspections in Cambridge
 The data comes from the City of Cambridge's open data portal (link: https://data.cambridgema.gov/Inspectional-Services/Sanitary-Violations-105-CMR-590-000-/mh73-gjid). It is updated frequently (almost every day) and is a compilation of the sanitary violations cited by an inspector that is hired by the city to go out and check a food establishment's sanitation practices. 
 
+# Link to Shiny App
+https://stevene97.shinyapps.io/Gov1005_Final_Project/
